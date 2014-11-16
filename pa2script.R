@@ -8,8 +8,8 @@ stormdata <- read.table(bzfile("stormdata.bz2"), header = TRUE, sep=',', na.stri
 
 stormdata$BGN_DATE <- strptime (stormdata$BGN_DATE, format = "%m/%d/%Y")
 
-initTypes <- levels(stormdata$EVTYPE)
-save (initTypes, file = "evtypes.txt")
+initTypes <- levels(as.factor(stormdata$EVTYPE))
+write (initTypes, file = "evtypes.txt")
 
 evtypesCorrection <- read.csv("edited_evtypes.csv", stringsAsFactors = FALSE)
 

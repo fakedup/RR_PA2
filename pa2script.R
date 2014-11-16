@@ -8,7 +8,8 @@ stormdata <- read.table(bzfile("stormdata.bz2"), header = TRUE, sep=',', na.stri
 
 stormdata$BGN_DATE <- strptime (stormdata$BGN_DATE, format = "%m/%d/%Y")
 
-write (levels(stormdata$EVTYPE), file = "evtypes.txt")
+initTypes <- levels(stormdata$EVTYPE)
+save (initTypes, file = "evtypes.txt")
 
 evtypesCorrection <- read.csv("edited_evtypes.csv", stringsAsFactors = FALSE)
 
@@ -40,29 +41,28 @@ stormdata$CROPDMG <- stormdata$CROPDMG*stormdata$CROPDMGEXP
 stormdata <- subset(stormdata, select=-c(CROPDMGEXP, PROPDMGEXP))
 
 boxplot(stormdata$PROPDMG[stormdata$PROPDMG != 0]) #detect outlier
-stormdata[stormdata$PROPDMG==max(stormdata$PROPDMG),] #outlier
+stormdata$REMARKS[stormdata$PROPDMG==max(stormdata$PROPDMG)]#outlier remark
 
-"""Remark:
-Major flooding continued into the early hours of January 1st, before the Napa River finally fell below flood stage and the water receeded.
-Flooding was severe in Downtown Napa from the Napa Creek and the City and Parks Department was hit with $6 million in damage alone.
-The City of Napa had 600 homes with moderate damage, 150 damaged businesses with costs of at least $70 million.
-"""
 stormdata$PROPDMG[stormdata$PROPDMG==max(stormdata$PROPDMG)] <- 76000000
 
-par(mar = c(7,4,2,2))
+par(mar = c(4,4,2,2))
+par (mfrow = c(2,1))
 
 fatalities <- aggregate (FATALITIES~EVTYPE, stormdata, sum)
 fatalities <- fatalities[fatalities$FATALITIES > quantile(fatalities$FATALITIES, probs = 0.9), ]
-with (fatalities, {
-        barplot (FATALITIES, names.arg = EVTYPE, las = 3, cex.names=0.7, main = "Top event types by total fatalities numbers")
-})
 
 injuries <- aggregate (INJURIES~EVTYPE, stormdata, sum)
 injuries <- injuries[injuries$INJURIES > quantile(injuries$INJURIES, probs = 0.9), ]
+
+with (fatalities, {
+        barplot (FATALITIES, names.arg = EVTYPE, las = 0, cex.names=0.5, main = "Top event types by total fatalities numbers")
+})
 with (injuries, {
-        barplot (INJURIES, names.arg = EVTYPE, las = 3, cex.names=0.7, main = "Top event types by total non-fatal injuries numbers")
+        barplot (INJURIES, names.arg = EVTYPE, las = 0, cex.names=0.5, main = "Top event types by total non-fatal injuries numbers")
 })
 
+par(mar = c(7,4,2,2))
+par (mfrow = c(1,1))
 damageCost <- aggregate (cbind (PROPDMG, CROPDMG)~EVTYPE, stormdata, sum)
 damageCost <- damageCost[(damageCost$PROPDMG + damageCost$CROPDMG > quantile (damageCost$PROPDMG + damageCost$CROPDMG, probs = 0.9)),]
 with (damageCost, {
